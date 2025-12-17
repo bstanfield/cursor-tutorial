@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect, ReactNode } from "react";
+import { useState, useEffect, useRef, ReactNode } from "react";
 import {
   Zap,
   Pencil,
@@ -40,6 +40,18 @@ import {
 const fadeInUp = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0 },
+};
+
+const fadeInOut = {
+  hidden: { opacity: 0 },
+  visible: { 
+    opacity: 1,
+    transition: { duration: 0.3 }
+  },
+  exit: { 
+    opacity: 0,
+    transition: { duration: 0.2 }
+  },
 };
 
 const staggerContainer = {
@@ -259,10 +271,10 @@ const strategistTips: typeof developerTips = [
   },
 ];
 
-const tutorials = [
+const developerTutorials = [
   {
     step: 1,
-    title: "Getting Started",
+    title: "Getting Started as a Developer",
     content:
       "After downloading Cursor, you can import your VS Code settings and extensions. Cursor is built on VS Code, so everything feels familiar.",
     tips: [
@@ -306,12 +318,116 @@ const tutorials = [
   },
 ];
 
+const creatorTutorials = [
+  {
+    step: 1,
+    title: "Getting Started as a Creator",
+    content:
+      "Download Cursor and open this page. No coding experience needed—just describe what you want in plain English, and Cursor will make it happen.",
+    tips: [
+      "No need to know programming languages",
+      "Just describe your vision",
+      "Cursor handles all the technical details",
+    ],
+  },
+  {
+    step: 2,
+    title: "Your First Request",
+    content:
+      "Press ⌘+L to open the AI chat. Tell Cursor what you want to change—colors, layouts, text, images, or new sections.",
+    tips: [
+      '"Make the header blue"',
+      '"Add more spacing between cards"',
+      '"Change the font to something modern"',
+    ],
+  },
+  {
+    step: 3,
+    title: "Visual Editing",
+    content:
+      "Select any element on the page and press ⌘+K. Describe how you want it to look, and watch it transform instantly.",
+    tips: [
+      '"Make this button bigger"',
+      '"Add a shadow effect"',
+      '"Change the background color"',
+    ],
+  },
+  {
+    step: 4,
+    title: "Building Features",
+    content:
+      "Press ⌘+I to open Composer for bigger changes. Describe entire features or sections you want to add, and Cursor will build them.",
+    tips: [
+      '"Add a testimonials section"',
+      '"Create a pricing table"',
+      '"Build a contact form"',
+    ],
+  },
+];
+
+const strategistTutorials = [
+  {
+    step: 1,
+    title: "Getting Started as a Strategist",
+    content:
+      "Download Cursor and open any project. You don't need to write code—use Cursor to explore, understand, and plan before making decisions.",
+    tips: [
+      "Perfect for non-technical team members",
+      "Understand codebases without coding",
+      "Make informed architectural decisions",
+    ],
+  },
+  {
+    step: 2,
+    title: "Ask Questions",
+    content:
+      "Press ⌘+L to open the AI chat. Ask questions about how the codebase works, what features exist, or how different parts connect.",
+    tips: [
+      '"How does authentication work here?"',
+      '"What APIs does this project expose?"',
+      '"How are these components connected?"',
+    ],
+  },
+  {
+    step: 3,
+    title: "Explore the Codebase",
+    content:
+      "Use @codebase in chat to get answers about the entire project. Understand architecture, dependencies, and design patterns without reading code.",
+    tips: [
+      '"What are the main modules?"',
+      '"How do these services interact?"',
+      '"What technologies are used?"',
+    ],
+  },
+  {
+    step: 4,
+    title: "Plan Before Building",
+    content:
+      "Select 'Plan Mode' in chat to have Cursor create detailed implementation plans. Review and approve approaches before any code is written.",
+    tips: [
+      "Get step-by-step implementation plans",
+      "Understand impact before changes",
+      "Share plans with your team",
+    ],
+  },
+];
+
+interface BlogPost {
+  title: string;
+  url: string;
+  date: string;
+  excerpt?: string;
+}
+
 export default function Home() {
   const [audienceMode, setAudienceMode] = useState<
     "developer" | "creator" | "strategist"
   >("developer");
   const [showNotification, setShowNotification] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
+  const [isToggleSticky, setIsToggleSticky] = useState(false);
+  const toggleRef = useRef<HTMLDivElement>(null);
 
   const currentTips =
     audienceMode === "developer"
@@ -320,11 +436,47 @@ export default function Home() {
       ? creatorTips
       : strategistTips;
 
+  const currentTutorials =
+    audienceMode === "developer"
+      ? developerTutorials
+      : audienceMode === "creator"
+      ? creatorTutorials
+      : strategistTutorials;
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowNotification(true);
     }, 5000);
     return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    // Fetch blog posts
+    fetch("/api/blog")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.posts) {
+          setBlogPosts(data.posts);
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching blog posts:", error);
+      });
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (toggleRef.current) {
+        const rect = toggleRef.current.getBoundingClientRect();
+        // When toggle scrolls past the nav bar (which is ~64px tall)
+        setIsToggleSticky(rect.top < 64);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    handleScroll(); // Check initial state
+
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const handleReset = async () => {
@@ -365,7 +517,7 @@ export default function Home() {
             {/* Cursor Logo */}
             <img src="/cursor-logo.png" alt="Cursor" className="h-6" />
             <span className="text-xs bg-cursor-olive/10 text-cursor-olive px-2 py-1 rounded-full font-medium">
-              Playground
+              Sandbox
             </span>
           </div>
           <button
@@ -381,6 +533,64 @@ export default function Home() {
             Reset sandbox
           </button>
         </div>
+        
+        {/* Sticky Toggle - appears when scrolled past */}
+        <AnimatePresence>
+          {isToggleSticky && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              className="border-t border-cursor-beige/50 bg-cursor-cream/95 backdrop-blur-sm"
+            >
+              <div className="max-w-6xl mx-auto px-6 py-1.5 flex items-center justify-center gap-3">
+                <p className="text-cursor-muted text-xs whitespace-nowrap">Tips for</p>
+                <div className="inline-flex items-center bg-white rounded-full p-0.5 shadow-sm border border-cursor-beige">
+                  <button
+                    onClick={() => setAudienceMode("developer")}
+                    className={`relative px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-300 ${
+                      audienceMode === "developer"
+                        ? "bg-cursor-olive text-white shadow-md"
+                        : "text-cursor-muted hover:text-cursor-charcoal"
+                    }`}
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <Code2 className="w-3.5 h-3.5" />
+                      Developers
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => setAudienceMode("creator")}
+                    className={`relative px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-300 ${
+                      audienceMode === "creator"
+                        ? "bg-cursor-olive text-white shadow-md"
+                        : "text-cursor-muted hover:text-cursor-charcoal"
+                    }`}
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <Palette className="w-3.5 h-3.5" />
+                      Creators
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => setAudienceMode("strategist")}
+                    className={`relative px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-300 ${
+                      audienceMode === "strategist"
+                        ? "bg-cursor-olive text-white shadow-md"
+                        : "text-cursor-muted hover:text-cursor-charcoal"
+                    }`}
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <Compass className="w-3.5 h-3.5" />
+                      Strategists
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </nav>
 
       {/* Tips Section - Main Content */}
@@ -403,24 +613,39 @@ export default function Home() {
               Interactive Sandbox
             </div>
             <h1 className="font-serif text-4xl md:text-6xl text-cursor-charcoal mb-4">
-              <span className="italic">Tips &amp; Tricks</span> for Beginners
+              Welcome to <span className="italic">Cursor Sandbox</span>
             </h1>
-            <p className="text-cursor-muted max-w-2xl mx-auto text-lg">
-              {audienceMode === "developer"
-                ? "Power-user tips for coding faster with IDE shortcuts, autocomplete, and background agents."
-                : audienceMode === "creator"
-                ? "Use natural language to design, style, and build—no coding knowledge required."
-                : "Explore, plan, and understand your codebase before making decisions."}
-              <span className="text-cursor-olive font-medium">
-                {" "}
-                This entire page is yours to customize—just ask the Agent!
-              </span>
+            <div className="min-h-[60px] flex items-center justify-center">
+              <AnimatePresence mode="wait">
+                <motion.p
+                  key={audienceMode}
+                  variants={fadeInOut}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  className="text-cursor-muted max-w-2xl mx-auto text-lg"
+                >
+                  {audienceMode === "developer"
+                    ? "A safe space to experiment with Cursor's AI-powered coding features. Try shortcuts, autocomplete, and agents without fear of breaking anything."
+                    : audienceMode === "creator"
+                    ? "Use natural language to design, style, and build—no coding knowledge required."
+                    : "Explore, plan, and understand your codebase before making decisions."}
+                </motion.p>
+              </AnimatePresence>
+            </div>
+            <p className="text-cursor-olive font-medium max-w-2xl mx-auto text-lg mt-4">
+              This entire page is yours to customize—just ask the Agent!
             </p>
           </motion.div>
 
           {/* Audience Toggle */}
-          <div className="flex flex-col items-center gap-3 mb-12">
-            <p className="text-cursor-muted text-sm">Are you more of a...</p>
+          <div 
+            ref={toggleRef}
+            className={`flex items-center justify-center gap-4 mb-12 transition-opacity duration-300 ${
+              isToggleSticky ? "opacity-0 pointer-events-none" : "opacity-100"
+            }`}
+          >
+            <p className="text-cursor-muted text-sm whitespace-nowrap">Tips for</p>
             <div className="inline-flex items-center bg-white rounded-full p-1 shadow-sm border border-cursor-beige">
               <button
                 onClick={() => setAudienceMode("developer")}
@@ -432,7 +657,7 @@ export default function Home() {
               >
                 <span className="flex items-center gap-2">
                   <Code2 className="w-4 h-4" />
-                  Developer
+                  Developers
                 </span>
               </button>
               <button
@@ -445,7 +670,7 @@ export default function Home() {
               >
                 <span className="flex items-center gap-2">
                   <Palette className="w-4 h-4" />
-                  Creator
+                  Creators
                 </span>
               </button>
               <button
@@ -458,7 +683,7 @@ export default function Home() {
               >
                 <span className="flex items-center gap-2">
                   <Compass className="w-4 h-4" />
-                  Strategist
+                  Strategists
                 </span>
               </button>
             </div>
@@ -509,33 +734,74 @@ export default function Home() {
             <p className="text-cursor-muted text-sm uppercase tracking-widest mb-4">
               Step by Step
             </p>
-            <h2 className="font-serif text-4xl md:text-5xl text-cursor-charcoal mb-4">
-              Getting <span className="italic">Started</span> Guide
-            </h2>
+            <div className="min-h-[80px] flex items-center justify-center mb-4">
+              <AnimatePresence mode="wait">
+                <motion.h2
+                  key={audienceMode}
+                  variants={fadeInOut}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  className="font-serif text-4xl md:text-5xl text-cursor-charcoal"
+                >
+                  Getting Started
+                </motion.h2>
+              </AnimatePresence>
+            </div>
             <p className="text-cursor-muted max-w-xl mx-auto">
               Follow these steps to go from beginner to productive in just a few
               minutes.
             </p>
           </motion.div>
 
-          <div className="space-y-8">
-            {tutorials.map((tutorial, index) => (
+          <div className="relative min-h-[400px]">
+            <AnimatePresence mode="wait">
               <motion.div
-                key={tutorial.step}
-                initial={{ opacity: 0, x: index % 2 === 0 ? -20 : 20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                className="flex gap-6"
+                key={audienceMode}
+                variants={fadeInOut}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                className="space-y-8"
               >
+              {currentTutorials.map((tutorial, index) => (
+                <motion.div
+                  key={`${audienceMode}-${tutorial.step}`}
+                  initial={{ opacity: 0, x: index % 2 === 0 ? -20 : 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="flex gap-6"
+                >
                 <div className="flex-shrink-0">
                   <div className="w-12 h-12 rounded-full bg-cursor-olive text-white flex items-center justify-center font-serif text-xl">
                     {tutorial.step}
                   </div>
                 </div>
                 <div className="flex-1 glass rounded-2xl p-6">
-                  <h3 className="font-semibold text-xl text-cursor-charcoal mb-3">
-                    {tutorial.title}
+                  <h3 className="font-semibold text-xl text-cursor-charcoal mb-3 flex items-center gap-2">
+                    {tutorial.step === 1 && tutorial.title.includes("Getting Started") ? (
+                      <>
+                        Getting Started as a{" "}
+                        {audienceMode === "developer" ? (
+                          <>
+                            <Code2 className="w-5 h-5" />
+                            Developer
+                          </>
+                        ) : audienceMode === "creator" ? (
+                          <>
+                            <Palette className="w-5 h-5" />
+                            Creator
+                          </>
+                        ) : (
+                          <>
+                            <Compass className="w-5 h-5" />
+                            Strategist
+                          </>
+                        )}
+                      </>
+                    ) : (
+                      tutorial.title
+                    )}
                   </h3>
                   <p className="text-cursor-muted mb-4">{tutorial.content}</p>
                   <ul className="space-y-2">
@@ -552,6 +818,8 @@ export default function Home() {
                 </div>
               </motion.div>
             ))}
+              </motion.div>
+            </AnimatePresence>
           </div>
         </div>
       </section>
@@ -623,7 +891,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Pro Tips Section */}
+      {/* Social Proof Section */}
       <section className="py-24 px-6">
         <div className="max-w-6xl mx-auto">
           <motion.div
@@ -633,50 +901,106 @@ export default function Home() {
             className="text-center mb-16"
           >
             <p className="text-cursor-muted text-sm uppercase tracking-widest mb-4">
-              Level Up
+              Loved by Developers
             </p>
             <h2 className="font-serif text-4xl md:text-5xl text-cursor-charcoal mb-4">
-              <span className="italic">Pro</span> Tips
+              What People Are <span className="italic">Saying</span>
             </h2>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          {/* Testimonials */}
+          <div className="grid md:grid-cols-2 gap-6 mb-16">
             {[
               {
-                title: "Be Specific in Prompts",
-                description:
-                  'Instead of "fix this", try "add null check for the user object before accessing email property".',
-                icon: <Target className="w-8 h-8" />,
+                quote: "Cursor has completely transformed how I code. The AI suggestions are spot-on and save me hours every day.",
+                author: "Sarah Chen",
+                role: "Senior Engineer at Stripe",
               },
               {
-                title: "Use @ Context",
-                description:
-                  "Reference @file or @codebase to give AI more context. The more context, the better the response.",
-                icon: <Pin className="w-8 h-8" />,
+                quote: "I can build features in minutes that used to take hours. Cursor understands context better than any tool I've used.",
+                author: "Marcus Johnson",
+                role: "Full-stack Developer",
               },
               {
-                title: "Iterate Quickly",
-                description:
-                  "Do not try to get everything perfect in one prompt. Make small, iterative changes.",
-                icon: <RefreshCw className="w-8 h-8" />,
+                quote: "As a designer, Cursor lets me bring my ideas to life without needing to learn complex programming. It's magical.",
+                author: "Emma Rodriguez",
+                role: "Product Designer",
               },
-            ].map((tip, index) => (
+              {
+                quote: "Cursor helps me understand codebases I've never seen before. It's like having a senior engineer explain everything.",
+                author: "David Kim",
+                role: "Engineering Manager",
+              },
+            ].map((testimonial, index) => (
               <motion.div
-                key={tip.title}
+                key={index}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-gradient-to-br from-cursor-olive/10 to-cursor-olive/5 rounded-2xl p-8 border border-cursor-olive/20"
+                className="glass rounded-2xl p-6"
               >
-                <div className="text-cursor-olive mb-4">{tip.icon}</div>
-                <h3 className="font-semibold text-xl text-cursor-charcoal mb-3">
-                  {tip.title}
-                </h3>
-                <p className="text-cursor-muted">{tip.description}</p>
+                <p className="text-cursor-charcoal mb-4 italic">
+                  "{testimonial.quote}"
+                </p>
+                <div>
+                  <p className="font-semibold text-cursor-charcoal">
+                    {testimonial.author}
+                  </p>
+                  <p className="text-sm text-cursor-muted">{testimonial.role}</p>
+                </div>
               </motion.div>
             ))}
           </div>
+
+          {/* Blog Posts */}
+          {blogPosts.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+            >
+              <div className="text-center mb-8">
+                <p className="text-cursor-muted text-sm uppercase tracking-widest mb-4">
+                  Latest Updates
+                </p>
+                <h3 className="font-serif text-3xl md:text-4xl text-cursor-charcoal mb-4">
+                  From the <span className="italic">Cursor</span> Blog
+                </h3>
+              </div>
+              <div className="grid md:grid-cols-3 gap-6">
+                {blogPosts.slice(0, 3).map((post, index) => (
+                  <motion.a
+                    key={post.title}
+                    href={post.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: index * 0.1 }}
+                    className="glass rounded-2xl p-6 hover:shadow-lg transition-all hover:-translate-y-1 block"
+                  >
+                    <p className="text-xs text-cursor-muted mb-2">
+                      {new Date(post.date).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })}
+                    </p>
+                    <h4 className="font-semibold text-lg text-cursor-charcoal mb-2 hover:text-cursor-olive transition-colors">
+                      {post.title}
+                    </h4>
+                    {post.excerpt && (
+                      <p className="text-sm text-cursor-muted line-clamp-2">
+                        {post.excerpt}
+                      </p>
+                    )}
+                  </motion.a>
+                ))}
+              </div>
+            </motion.div>
+          )}
         </div>
       </section>
 
@@ -684,14 +1008,7 @@ export default function Home() {
       <footer className="py-12 px-6 bg-cursor-beige/50 border-t border-cursor-beige">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <svg className="w-6 h-6" viewBox="0 0 100 100" fill="none">
-              <path d="M15 25 L50 10 L85 25 L50 40 Z" fill="#2c2c2c" />
-              <path d="M15 25 L50 40 L50 90 L15 75 Z" fill="#3d3d3d" />
-              <path d="M85 25 L50 40 L50 90 L85 75 Z" fill="#1a1a1a" />
-            </svg>
-            <span className="font-medium text-cursor-charcoal tracking-wide">
-              CURSOR
-            </span>
+            <img src="/cursor-logo.png" alt="Cursor" className="h-6" />
           </div>
           <p className="text-sm text-cursor-muted">
             A sandbox for learning. Edit anything by prompting the Agent.
