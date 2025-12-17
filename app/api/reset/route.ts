@@ -1,37 +1,37 @@
 import { NextResponse } from "next/server";
-import { promises as fs } from "fs";
-import path from "path";
+import { exec } from "child_process";
+import { promisify } from "util";
+
+const execAsync = promisify(exec);
 
 export async function POST() {
   try {
     const projectRoot = process.cwd();
 
-    // Define the files to reset
-    const filesToReset = [
-      {
-        default: path.join(projectRoot, "defaults", "page.default.tsx"),
-        target: path.join(projectRoot, "app", "page.tsx"),
-      },
-      {
-        default: path.join(projectRoot, "defaults", "globals.default.css"),
-        target: path.join(projectRoot, "app", "globals.css"),
-      },
-    ];
+    // Fetch latest from origin
+    await execAsync("git fetch origin main", { cwd: projectRoot });
 
-    // Reset each file
-    for (const file of filesToReset) {
-      const defaultContent = await fs.readFile(file.default, "utf-8");
-      await fs.writeFile(file.target, defaultContent, "utf-8");
-    }
+    // Discard all local changes and reset to origin/main
+    await execAsync("git reset --hard origin/main", { cwd: projectRoot });
+
+    // Clean up any untracked files
+    await execAsync("git clean -fd", { cwd: projectRoot });
 
     return NextResponse.json({
       success: true,
-      message: "Sandbox reset successfully",
+      message: "Sandbox reset successfully - all changes discarded and pulled latest from main",
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Reset error:", error);
+    
+    // Provide more detailed error information
+    const errorMessage = error?.stderr || error?.message || "Failed to reset sandbox";
+    
     return NextResponse.json(
-      { success: false, message: "Failed to reset sandbox" },
+      { 
+        success: false, 
+        message: `Failed to reset sandbox: ${errorMessage}` 
+      },
       { status: 500 }
     );
   }

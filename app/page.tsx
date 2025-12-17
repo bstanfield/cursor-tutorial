@@ -331,7 +331,9 @@ export default function Home() {
     if (isResetting) return;
 
     const confirmed = window.confirm(
-      "Reset sandbox to default? This will revert all changes you've made to the page."
+      "⚠️ DESTRUCTIVE ACTION ⚠️\n\n" +
+      "This will PERMANENTLY discard ALL local changes and reset to the latest code from main branch.\n\n" +
+      "This cannot be undone. Are you absolutely sure?"
     );
 
     if (!confirmed) return;
@@ -339,13 +341,16 @@ export default function Home() {
     setIsResetting(true);
     try {
       const response = await fetch("/api/reset", { method: "POST" });
+      const data = await response.json();
+      
       if (response.ok) {
+        alert("✅ Sandbox reset successfully! All changes discarded and pulled latest from main.");
         window.location.reload();
       } else {
-        alert("Failed to reset sandbox. Please try again.");
+        alert(`❌ Failed to reset sandbox: ${data.message || "Unknown error"}`);
       }
     } catch (error) {
-      alert("Failed to reset sandbox. Please try again.");
+      alert("❌ Failed to reset sandbox. Please check your connection and try again.");
     } finally {
       setIsResetting(false);
     }
