@@ -3,38 +3,20 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, ReactNode } from "react";
 import {
-  Zap,
-  Pencil,
-  Terminal,
-  Paperclip,
-  BookOpen,
-  Cloud,
-  Layers,
-  GitBranch,
-  MessageSquare,
   Palette,
-  FileEdit,
+  Type,
   LayoutGrid,
   Sparkles,
-  Smartphone,
-  Puzzle,
+  AtSign,
+  MessageSquare,
   Target,
-  Search,
-  ClipboardList,
-  HelpCircle,
-  Building2,
-  BarChart3,
-  BookText,
-  Lightbulb,
-  FileText,
-  Code2,
-  Compass,
-  Pin,
   RefreshCw,
   X,
   Check,
   RotateCcw,
   Loader2,
+  Undo2,
+  ClipboardList,
 } from "lucide-react";
 
 const fadeInUp = {
@@ -52,273 +34,135 @@ const staggerContainer = {
   },
 };
 
-const developerTips: {
+// Unified Agent tips - mix of hands-on prompts and general patterns
+const agentTips: {
   id: number;
   title: string;
-  shortcut: string;
+  prompt: string;
   description: string;
   icon: ReactNode;
+  tryIt?: boolean;
 }[] = [
   {
     id: 1,
-    title: "Tab Autocomplete",
-    shortcut: "Tab",
+    title: "Change the Colors",
+    prompt: '"Make the background dark" or "Use a blue theme"',
     description:
-      "Accept AI-powered code suggestions as you type. Cursor predicts what you want to write next based on context.",
-    icon: <Zap className="w-6 h-6" />,
-  },
-  {
-    id: 2,
-    title: "Inline Edit",
-    shortcut: "⌘ + K",
-    description:
-      "Select code and press this shortcut to edit it inline. Perfect for quick refactors, adding types, or fixing bugs.",
-    icon: <Pencil className="w-6 h-6" />,
-  },
-  {
-    id: 3,
-    title: "Terminal Integration",
-    shortcut: "⌘ + `",
-    description:
-      "AI can run commands, install packages, and help debug terminal errors automatically.",
-    icon: <Terminal className="w-6 h-6" />,
-  },
-  {
-    id: 4,
-    title: "Context with @",
-    shortcut: "@file, @folder, @codebase",
-    description:
-      "Reference specific files or your entire codebase in chat for more accurate code suggestions.",
-    icon: <Paperclip className="w-6 h-6" />,
-  },
-  {
-    id: 5,
-    title: "Docs Reference",
-    shortcut: "@docs",
-    description:
-      "Reference framework documentation directly in prompts. Add custom docs for your tech stack.",
-    icon: <BookOpen className="w-6 h-6" />,
-  },
-  {
-    id: 6,
-    title: "Background Agents",
-    shortcut: "Remote Agent",
-    description:
-      "Run complex coding tasks in the cloud while you continue working. Great for large refactors or migrations.",
-    icon: <Cloud className="w-6 h-6" />,
-  },
-  {
-    id: 7,
-    title: "Multi-File Composer",
-    shortcut: "⌘ + I",
-    description:
-      "Open Composer for changes spanning multiple files. Create features, refactor modules, or scaffold entire projects.",
-    icon: <Layers className="w-6 h-6" />,
-  },
-  {
-    id: 8,
-    title: "Git Integration",
-    shortcut: "Agent Mode",
-    description:
-      "Let the Agent handle git operations—commits, branches, and even pull request descriptions.",
-    icon: <GitBranch className="w-6 h-6" />,
-  },
-];
-
-const creatorTips: typeof developerTips = [
-  {
-    id: 1,
-    title: "Agent Chat",
-    shortcut: "⌘ + L",
-    description:
-      "Just describe what you want in plain English. The Agent will make the changes across your project.",
-    icon: <MessageSquare className="w-6 h-6" />,
-  },
-  {
-    id: 2,
-    title: "Visual Edits",
-    shortcut: "Describe in Chat",
-    description:
-      '"Make the header blue" or "Add more padding to the cards"—the Agent understands design intent.',
+      "Try it now! Ask the Agent to change this page's color scheme. Describe the mood or specific colors you want.",
     icon: <Palette className="w-6 h-6" />,
+    tryIt: true,
+  },
+  {
+    id: 2,
+    title: "Edit the Content",
+    prompt: '"Change the heading to say Welcome to My Sandbox"',
+    description:
+      "Update any text on this page. The Agent can modify headings, descriptions, button labels—anything you see.",
+    icon: <Type className="w-6 h-6" />,
+    tryIt: true,
   },
   {
     id: 3,
-    title: "Content Updates",
-    shortcut: "Ask the Agent",
+    title: "Modify the Layout",
+    prompt: '"Make the tips grid 2 columns" or "Add more spacing"',
     description:
-      "Update text, images, and copy across your site. Just tell the Agent what to change.",
-    icon: <FileEdit className="w-6 h-6" />,
+      "Restructure how elements are arranged. Change grid layouts, spacing, alignment, or completely reorganize sections.",
+    icon: <LayoutGrid className="w-6 h-6" />,
+    tryIt: true,
   },
   {
     id: 4,
-    title: "Layout Changes",
-    shortcut: "Composer Mode",
+    title: "Add New Sections",
+    prompt: '"Add a FAQ section" or "Create a contact form"',
     description:
-      '"Move the sidebar to the right" or "Make this a 3-column grid"—restructure layouts naturally.',
-    icon: <LayoutGrid className="w-6 h-6" />,
+      "Ask the Agent to build entirely new components. It can create sections, forms, cards, or any UI element you describe.",
+    icon: <Sparkles className="w-6 h-6" />,
+    tryIt: true,
   },
   {
     id: 5,
-    title: "Add Animations",
-    shortcut: "Describe the Motion",
+    title: "Use @ for Context",
+    prompt: "@page.tsx @globals.css",
     description:
-      '"Add a fade-in effect" or "Make buttons bounce on hover"—bring your designs to life.',
-    icon: <Sparkles className="w-6 h-6" />,
+      "Reference specific files to give the Agent more context. Type @ in the chat to see available files, folders, or docs.",
+    icon: <AtSign className="w-6 h-6" />,
   },
   {
     id: 6,
-    title: "Responsive Design",
-    shortcut: "Ask for Mobile",
+    title: "Be Specific",
+    prompt: '"Add a red border to the cards" vs "make it look better"',
     description:
-      '"Make this work on mobile" and the Agent will add responsive breakpoints and adjustments.',
-    icon: <Smartphone className="w-6 h-6" />,
-  },
-  {
-    id: 7,
-    title: "Component Creation",
-    shortcut: "Describe What You Need",
-    description:
-      '"Add a testimonials section" or "Create a pricing table"—build new UI from descriptions.',
-    icon: <Puzzle className="w-6 h-6" />,
-  },
-  {
-    id: 8,
-    title: "Style Consistency",
-    shortcut: "@file for Context",
-    description:
-      "Reference existing components so new additions match your design system automatically.",
+      "The more specific your request, the better the result. Describe exactly what you want—colors, sizes, positions.",
     icon: <Target className="w-6 h-6" />,
   },
-];
-
-const strategistTips: typeof developerTips = [
-  {
-    id: 1,
-    title: "Ask Mode",
-    shortcut: "Select in Chat",
-    description:
-      "Get answers about your codebase without making changes. Perfect for understanding architecture and making decisions.",
-    icon: <Search className="w-6 h-6" />,
-  },
-  {
-    id: 2,
-    title: "Plan Mode",
-    shortcut: "Select in Chat",
-    description:
-      "Have AI create a detailed implementation plan before any code is written. Review and approve the approach first.",
-    icon: <ClipboardList className="w-6 h-6" />,
-  },
-  {
-    id: 3,
-    title: "Codebase Q&A",
-    shortcut: "@codebase",
-    description:
-      '"How does authentication work?" or "What APIs do we expose?"—get instant answers about any part of the project.',
-    icon: <HelpCircle className="w-6 h-6" />,
-  },
-  {
-    id: 4,
-    title: "Architecture Review",
-    shortcut: "Ask Mode",
-    description:
-      '"What are the dependencies between these modules?" Understand system design without digging through code.',
-    icon: <Building2 className="w-6 h-6" />,
-  },
-  {
-    id: 5,
-    title: "Impact Analysis",
-    shortcut: "Plan Mode",
-    description:
-      '"What would change if we add this feature?" Get a comprehensive view of affected files and components.',
-    icon: <BarChart3 className="w-6 h-6" />,
-  },
-  {
-    id: 6,
-    title: "Documentation Generation",
-    shortcut: "Agent Mode",
-    description:
-      "Generate READMEs, API docs, or architecture diagrams from your existing code automatically.",
-    icon: <BookText className="w-6 h-6" />,
-  },
   {
     id: 7,
-    title: "Code Explanation",
-    shortcut: "Ask Mode",
+    title: "Iterate & Refine",
+    prompt: '"Actually, make it darker" or "A bit more padding"',
     description:
-      "Get plain-English explanations of complex code. Great for onboarding or reviewing unfamiliar areas.",
-    icon: <Lightbulb className="w-6 h-6" />,
+      "Don't try to get everything perfect in one prompt. Make a change, see the result, then ask for adjustments.",
+    icon: <RefreshCw className="w-6 h-6" />,
   },
   {
     id: 8,
-    title: "Technical Specs",
-    shortcut: "Plan Mode",
+    title: "Review Changes",
+    prompt: "Check the diff before accepting",
     description:
-      "Turn feature requests into technical specifications. Share plans with your team before implementation.",
-    icon: <FileText className="w-6 h-6" />,
+      "Always review what the Agent modified. You can accept, reject, or ask for different changes before saving.",
+    icon: <Check className="w-6 h-6" />,
   },
 ];
 
 const tutorials = [
   {
     step: 1,
-    title: "Getting Started",
+    title: "Open the Agent",
     content:
-      "After downloading Cursor, you can import your VS Code settings and extensions. Cursor is built on VS Code, so everything feels familiar.",
+      "Press ⌘+L (or Ctrl+L on Windows) to open the Agent panel. This is where you'll have conversations with the AI about your code.",
     tips: [
-      "Import settings from VS Code on first launch",
-      "Your existing extensions will work",
-      "Same keyboard shortcuts you know",
+      "The Agent panel opens on the right side",
+      "Your current file is automatically included as context",
+      "You can resize the panel by dragging the edge",
     ],
   },
   {
     step: 2,
-    title: "Your First AI Chat",
+    title: "Describe What You Want",
     content:
-      "Press ⌘+L to open the AI chat. Ask anything about your code or programming in general. The AI has context of your current file.",
+      "Type a natural language description of the change you want. Be specific about what you're trying to achieve.",
     tips: [
-      'Ask "What does this function do?"',
-      "Request code explanations",
-      "Get help with errors",
+      '"Change the background color to dark blue"',
+      '"Add a new section with three feature cards"',
+      '"Make the header sticky when scrolling"',
     ],
   },
   {
     step: 3,
-    title: "Inline Editing Magic",
+    title: "Review the Changes",
     content:
-      "Select some code and press ⌘+K. Describe what changes you want, and watch the AI transform your code instantly.",
+      "The Agent will show you exactly what it plans to change. Review the diff to make sure it matches your intent.",
     tips: [
-      '"Add error handling"',
-      '"Convert to TypeScript"',
-      '"Make this more readable"',
+      "Green lines are additions, red lines are removals",
+      "Click on files to see what changed",
+      "You can still edit the code manually if needed",
     ],
   },
   {
     step: 4,
-    title: "Multi-File with Composer",
+    title: "Accept or Iterate",
     content:
-      "Press ⌘+I to open Composer. This is perfect for larger tasks that span multiple files, like adding a new feature or refactoring.",
+      "If you're happy, accept the changes. If not, ask for adjustments—the Agent remembers the conversation context.",
     tips: [
-      "Create entire components",
-      "Add features across files",
-      "Refactor project structure",
+      '"Actually, make it a lighter shade"',
+      '"Can you also add a hover effect?"',
+      "Use the Reset button above to start fresh anytime",
     ],
   },
 ];
 
 export default function Home() {
-  const [audienceMode, setAudienceMode] = useState<
-    "developer" | "creator" | "strategist"
-  >("developer");
   const [showNotification, setShowNotification] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
-
-  const currentTips =
-    audienceMode === "developer"
-      ? developerTips
-      : audienceMode === "creator"
-      ? creatorTips
-      : strategistTips;
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -398,97 +242,67 @@ export default function Home() {
               Interactive Sandbox
             </div>
             <h1 className="font-serif text-4xl md:text-6xl text-cursor-charcoal mb-4">
-              <span className="italic">Tips &amp; Tricks</span> for Beginners
+              Learn <span className="italic">Cursor Agent</span> by Using It
             </h1>
             <p className="text-cursor-muted max-w-2xl mx-auto text-lg">
-              {audienceMode === "developer"
-                ? "Power-user tips for coding faster with IDE shortcuts, autocomplete, and background agents."
-                : audienceMode === "creator"
-                ? "Use natural language to design, style, and build—no coding knowledge required."
-                : "Explore, plan, and understand your codebase before making decisions."}
-              <span className="text-cursor-olive font-medium">
-                {" "}
-                This entire page is yours to customize—just ask the Agent!
-              </span>
+              This page is your playground. Use the tips below to practice
+              talking to the Agent—try editing colors, layouts, content, or
+              anything else you can imagine.
             </p>
+            <div className="flex items-center justify-center gap-3 mt-6 text-cursor-olive font-medium">
+              <motion.span
+                animate={{ x: [0, -8, 0] }}
+                transition={{
+                  duration: 1.5,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+                className="text-2xl"
+              >
+                ←
+              </motion.span>
+              <span>Type something in the Agent chat to the left</span>
+            </div>
           </motion.div>
 
-          {/* Audience Toggle */}
-          <div className="flex flex-col items-center gap-3 mb-12">
-            <p className="text-cursor-muted text-sm">Are you more of a...</p>
-            <div className="inline-flex items-center bg-white rounded-full p-1 shadow-sm border border-cursor-beige">
-              <button
-                onClick={() => setAudienceMode("developer")}
-                className={`relative px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 ${
-                  audienceMode === "developer"
-                    ? "bg-cursor-olive text-white shadow-md"
-                    : "text-cursor-muted hover:text-cursor-charcoal"
-                }`}
-              >
-                <span className="flex items-center gap-2">
-                  <Code2 className="w-4 h-4" />
-                  Developer
-                </span>
-              </button>
-              <button
-                onClick={() => setAudienceMode("creator")}
-                className={`relative px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 ${
-                  audienceMode === "creator"
-                    ? "bg-cursor-olive text-white shadow-md"
-                    : "text-cursor-muted hover:text-cursor-charcoal"
-                }`}
-              >
-                <span className="flex items-center gap-2">
-                  <Palette className="w-4 h-4" />
-                  Creator
-                </span>
-              </button>
-              <button
-                onClick={() => setAudienceMode("strategist")}
-                className={`relative px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 ${
-                  audienceMode === "strategist"
-                    ? "bg-cursor-olive text-white shadow-md"
-                    : "text-cursor-muted hover:text-cursor-charcoal"
-                }`}
-              >
-                <span className="flex items-center gap-2">
-                  <Compass className="w-4 h-4" />
-                  Strategist
-                </span>
-              </button>
-            </div>
-          </div>
-
           {/* Tips Grid */}
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={audienceMode}
-              className="grid md:grid-cols-2 lg:grid-cols-4 gap-4"
-              initial="hidden"
-              animate="visible"
-              exit="hidden"
-              variants={staggerContainer}
-            >
-              {currentTips.map((tip) => (
-                <motion.div
-                  key={tip.id}
-                  variants={fadeInUp}
-                  className="glass rounded-2xl p-6 hover:shadow-lg transition-all hover:-translate-y-1 group"
-                >
-                  <div className="text-cursor-olive mb-4">{tip.icon}</div>
-                  <h3 className="font-semibold text-lg text-cursor-charcoal mb-2 group-hover:text-cursor-olive transition-colors">
-                    {tip.title}
-                  </h3>
-                  <div className="mb-3">
-                    <span className="kbd text-xs">{tip.shortcut}</span>
-                  </div>
-                  <p className="text-sm text-cursor-muted leading-relaxed">
-                    {tip.description}
-                  </p>
-                </motion.div>
-              ))}
-            </motion.div>
-          </AnimatePresence>
+          <motion.div
+            className="grid md:grid-cols-2 lg:grid-cols-4 gap-4"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={staggerContainer}
+          >
+            {agentTips.map((tip) => (
+              <motion.div
+                key={tip.id}
+                variants={fadeInUp}
+                className={`glass rounded-2xl p-6 hover:shadow-lg transition-all hover:-translate-y-1 group ${
+                  tip.tryIt ? "ring-2 ring-cursor-olive/20" : ""
+                }`}
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div className="text-cursor-olive">{tip.icon}</div>
+                  {tip.tryIt && (
+                    <span className="text-xs bg-cursor-olive/10 text-cursor-olive px-2 py-1 rounded-full font-medium">
+                      Try it!
+                    </span>
+                  )}
+                </div>
+                <h3 className="font-semibold text-lg text-cursor-charcoal mb-2 group-hover:text-cursor-olive transition-colors">
+                  {tip.title}
+                </h3>
+                <div className="mb-3">
+                  <code className="text-xs bg-cursor-charcoal/5 text-cursor-charcoal/80 px-2 py-1 rounded font-mono">
+                    {tip.prompt}
+                  </code>
+                </div>
+                <p className="text-sm text-cursor-muted leading-relaxed">
+                  {tip.description}
+                </p>
+              </motion.div>
+            ))}
+          </motion.div>
         </div>
       </section>
 
@@ -556,7 +370,7 @@ export default function Home() {
         id="shortcuts"
         className="py-24 px-6 bg-cursor-charcoal text-white"
       >
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-3xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -564,14 +378,14 @@ export default function Home() {
             className="text-center mb-16"
           >
             <p className="text-cursor-warm/60 text-sm uppercase tracking-widest mb-4">
-              Quick Reference
+              Essential Shortcuts
             </p>
             <h2 className="font-serif text-4xl md:text-5xl text-white mb-4">
-              Keyboard <span className="italic">Shortcuts</span>
+              Agent <span className="italic">Shortcuts</span>
             </h2>
             <p className="text-cursor-warm/60 max-w-xl mx-auto">
-              Print this out or keep it handy. These shortcuts will become
-              second nature.
+              The only shortcuts you need to know to start using the Agent
+              effectively.
             </p>
           </motion.div>
 
@@ -583,23 +397,31 @@ export default function Home() {
           >
             <div className="grid md:grid-cols-2">
               {[
-                { keys: "⌘ + L", action: "Open AI Chat" },
-                { keys: "⌘ + K", action: "Inline Edit" },
-                { keys: "⌘ + I", action: "Open Composer" },
-                { keys: "Tab", action: "Accept Suggestion" },
-                { keys: "⌘ + Shift + L", action: "Add Selection to Chat" },
-                { keys: "⌘ + `", action: "Toggle Terminal" },
-                { keys: "⌘ + B", action: "Toggle Sidebar" },
-                { keys: "⌘ + P", action: "Quick Open File" },
+                { keys: "⌘ + L", action: "Open Agent Panel", primary: true },
+                { keys: "⌘ + I", action: "Open Composer", primary: true },
+                { keys: "⌘ + Z", action: "Undo Changes", primary: false },
+                { keys: "⌘ + Enter", action: "Send Message", primary: false },
               ].map((shortcut, index) => (
                 <div
                   key={shortcut.keys}
                   className={`flex items-center justify-between p-5 ${
                     index % 2 === 0 ? "border-r border-white/10" : ""
-                  } ${index < 6 ? "border-b border-white/10" : ""}`}
+                  } ${index < 2 ? "border-b border-white/10" : ""}`}
                 >
-                  <span className="text-white/80">{shortcut.action}</span>
-                  <kbd className="bg-white/10 text-white px-3 py-1.5 rounded-lg text-sm font-mono">
+                  <span
+                    className={
+                      shortcut.primary ? "text-white" : "text-white/60"
+                    }
+                  >
+                    {shortcut.action}
+                  </span>
+                  <kbd
+                    className={`px-3 py-1.5 rounded-lg text-sm font-mono ${
+                      shortcut.primary
+                        ? "bg-cursor-olive text-white"
+                        : "bg-white/10 text-white"
+                    }`}
+                  >
                     {shortcut.keys}
                   </kbd>
                 </div>
@@ -631,28 +453,28 @@ export default function Home() {
               Level Up
             </p>
             <h2 className="font-serif text-4xl md:text-5xl text-cursor-charcoal mb-4">
-              <span className="italic">Pro</span> Tips
+              <span className="italic">Agent</span> Pro Tips
             </h2>
           </motion.div>
 
           <div className="grid md:grid-cols-3 gap-6">
             {[
               {
-                title: "Be Specific in Prompts",
+                title: "Undo with ⌘+Z",
                 description:
-                  'Instead of "fix this", try "add null check for the user object before accessing email property".',
-                icon: <Target className="w-8 h-8" />,
+                  "Made a mistake? Just undo like normal. The Agent's changes are just regular edits—you have full control.",
+                icon: <Undo2 className="w-8 h-8" />,
               },
               {
-                title: "Use @ Context",
+                title: "Use Plan Mode",
                 description:
-                  "Reference @file or @codebase to give AI more context. The more context, the better the response.",
-                icon: <Pin className="w-8 h-8" />,
+                  "For complex changes, ask the Agent to plan first. It will outline the approach before making any edits.",
+                icon: <ClipboardList className="w-8 h-8" />,
               },
               {
-                title: "Iterate Quickly",
+                title: "Chain Requests",
                 description:
-                  "Do not try to get everything perfect in one prompt. Make small, iterative changes.",
+                  'Build on previous changes. Say "now make it responsive" or "add a hover effect to that" in the same conversation.',
                 icon: <RefreshCw className="w-8 h-8" />,
               },
             ].map((tip, index) => (
@@ -679,14 +501,7 @@ export default function Home() {
       <footer className="py-12 px-6 bg-cursor-beige/50 border-t border-cursor-beige">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <svg className="w-6 h-6" viewBox="0 0 100 100" fill="none">
-              <path d="M15 25 L50 10 L85 25 L50 40 Z" fill="#2c2c2c" />
-              <path d="M15 25 L50 40 L50 90 L15 75 Z" fill="#3d3d3d" />
-              <path d="M85 25 L50 40 L50 90 L85 75 Z" fill="#1a1a1a" />
-            </svg>
-            <span className="font-medium text-cursor-charcoal tracking-wide">
-              CURSOR
-            </span>
+            <img src="/cursor-logo.png" alt="Cursor" className="h-5" />
           </div>
           <p className="text-sm text-cursor-muted">
             A sandbox for learning. Edit anything by prompting the Agent.

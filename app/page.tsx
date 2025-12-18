@@ -1,57 +1,27 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect, useRef, ReactNode } from "react";
+import { useState, useEffect, ReactNode } from "react";
 import {
-  Zap,
-  Pencil,
-  Terminal,
-  Paperclip,
-  BookOpen,
-  Cloud,
-  Layers,
-  GitBranch,
-  MessageSquare,
   Palette,
-  FileEdit,
+  Type,
   LayoutGrid,
   Sparkles,
-  Smartphone,
-  Puzzle,
+  AtSign,
+  MessageSquare,
   Target,
-  Search,
-  ClipboardList,
-  HelpCircle,
-  Building2,
-  BarChart3,
-  BookText,
-  Lightbulb,
-  FileText,
-  Code2,
-  Compass,
-  Pin,
   RefreshCw,
   X,
   Check,
   RotateCcw,
   Loader2,
+  Undo2,
+  ClipboardList,
 } from "lucide-react";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0 },
-};
-
-const fadeInOut = {
-  hidden: { opacity: 0 },
-  visible: { 
-    opacity: 1,
-    transition: { duration: 0.3 }
-  },
-  exit: { 
-    opacity: 0,
-    transition: { duration: 0.2 }
-  },
 };
 
 const staggerContainer = {
@@ -64,384 +34,135 @@ const staggerContainer = {
   },
 };
 
-const developerTips: {
+// Unified Agent tips - mix of hands-on prompts and general patterns
+const agentTips: {
   id: number;
   title: string;
-  shortcut: string;
+  prompt: string;
   description: string;
   icon: ReactNode;
+  tryIt?: boolean;
 }[] = [
   {
     id: 1,
-    title: "Tab Autocomplete",
-    shortcut: "Tab",
+    title: "Change the Colors",
+    prompt: '"Make the background dark" or "Use a blue theme"',
     description:
-      "Accept AI-powered code suggestions as you type. Cursor predicts what you want to write next based on context.",
-    icon: <Zap className="w-6 h-6" />,
-  },
-  {
-    id: 2,
-    title: "Inline Edit",
-    shortcut: "⌘ + K",
-    description:
-      "Select code and press this shortcut to edit it inline. Perfect for quick refactors, adding types, or fixing bugs.",
-    icon: <Pencil className="w-6 h-6" />,
-  },
-  {
-    id: 3,
-    title: "Terminal Integration",
-    shortcut: "⌘ + `",
-    description:
-      "AI can run commands, install packages, and help debug terminal errors automatically.",
-    icon: <Terminal className="w-6 h-6" />,
-  },
-  {
-    id: 4,
-    title: "Context with @",
-    shortcut: "@file, @folder, @codebase",
-    description:
-      "Reference specific files or your entire codebase in chat for more accurate code suggestions.",
-    icon: <Paperclip className="w-6 h-6" />,
-  },
-  {
-    id: 5,
-    title: "Docs Reference",
-    shortcut: "@docs",
-    description:
-      "Reference framework documentation directly in prompts. Add custom docs for your tech stack.",
-    icon: <BookOpen className="w-6 h-6" />,
-  },
-  {
-    id: 6,
-    title: "Background Agents",
-    shortcut: "Remote Agent",
-    description:
-      "Run complex coding tasks in the cloud while you continue working. Great for large refactors or migrations.",
-    icon: <Cloud className="w-6 h-6" />,
-  },
-  {
-    id: 7,
-    title: "Multi-File Composer",
-    shortcut: "⌘ + I",
-    description:
-      "Open Composer for changes spanning multiple files. Create features, refactor modules, or scaffold entire projects.",
-    icon: <Layers className="w-6 h-6" />,
-  },
-  {
-    id: 8,
-    title: "Git Integration",
-    shortcut: "Agent Mode",
-    description:
-      "Let the Agent handle git operations—commits, branches, and even pull request descriptions.",
-    icon: <GitBranch className="w-6 h-6" />,
-  },
-];
-
-const creatorTips: typeof developerTips = [
-  {
-    id: 1,
-    title: "Agent Chat",
-    shortcut: "⌘ + L",
-    description:
-      "Just describe what you want in plain English. The Agent will make the changes across your project.",
-    icon: <MessageSquare className="w-6 h-6" />,
-  },
-  {
-    id: 2,
-    title: "Visual Edits",
-    shortcut: "Describe in Chat",
-    description:
-      '"Make the header blue" or "Add more padding to the cards"—the Agent understands design intent.',
+      "Try it now! Ask the Agent to change this page's color scheme. Describe the mood or specific colors you want.",
     icon: <Palette className="w-6 h-6" />,
+    tryIt: true,
+  },
+  {
+    id: 2,
+    title: "Edit the Content",
+    prompt: '"Change the heading to say Welcome to My Sandbox"',
+    description:
+      "Update any text on this page. The Agent can modify headings, descriptions, button labels—anything you see.",
+    icon: <Type className="w-6 h-6" />,
+    tryIt: true,
   },
   {
     id: 3,
-    title: "Content Updates",
-    shortcut: "Ask the Agent",
+    title: "Modify the Layout",
+    prompt: '"Make the tips grid 2 columns" or "Add more spacing"',
     description:
-      "Update text, images, and copy across your site. Just tell the Agent what to change.",
-    icon: <FileEdit className="w-6 h-6" />,
+      "Restructure how elements are arranged. Change grid layouts, spacing, alignment, or completely reorganize sections.",
+    icon: <LayoutGrid className="w-6 h-6" />,
+    tryIt: true,
   },
   {
     id: 4,
-    title: "Layout Changes",
-    shortcut: "Composer Mode",
+    title: "Add New Sections",
+    prompt: '"Add a FAQ section" or "Create a contact form"',
     description:
-      '"Move the sidebar to the right" or "Make this a 3-column grid"—restructure layouts naturally.',
-    icon: <LayoutGrid className="w-6 h-6" />,
+      "Ask the Agent to build entirely new components. It can create sections, forms, cards, or any UI element you describe.",
+    icon: <Sparkles className="w-6 h-6" />,
+    tryIt: true,
   },
   {
     id: 5,
-    title: "Add Animations",
-    shortcut: "Describe the Motion",
+    title: "Use @ for Context",
+    prompt: "@page.tsx @globals.css",
     description:
-      '"Add a fade-in effect" or "Make buttons bounce on hover"—bring your designs to life.',
-    icon: <Sparkles className="w-6 h-6" />,
+      "Reference specific files to give the Agent more context. Type @ in the chat to see available files, folders, or docs.",
+    icon: <AtSign className="w-6 h-6" />,
   },
   {
     id: 6,
-    title: "Responsive Design",
-    shortcut: "Ask for Mobile",
+    title: "Be Specific",
+    prompt: '"Add a red border to the cards" vs "make it look better"',
     description:
-      '"Make this work on mobile" and the Agent will add responsive breakpoints and adjustments.',
-    icon: <Smartphone className="w-6 h-6" />,
-  },
-  {
-    id: 7,
-    title: "Component Creation",
-    shortcut: "Describe What You Need",
-    description:
-      '"Add a testimonials section" or "Create a pricing table"—build new UI from descriptions.',
-    icon: <Puzzle className="w-6 h-6" />,
-  },
-  {
-    id: 8,
-    title: "Style Consistency",
-    shortcut: "@file for Context",
-    description:
-      "Reference existing components so new additions match your design system automatically.",
+      "The more specific your request, the better the result. Describe exactly what you want—colors, sizes, positions.",
     icon: <Target className="w-6 h-6" />,
   },
-];
-
-const strategistTips: typeof developerTips = [
-  {
-    id: 1,
-    title: "Ask Mode",
-    shortcut: "Select in Chat",
-    description:
-      "Get answers about your codebase without making changes. Perfect for understanding architecture and making decisions.",
-    icon: <Search className="w-6 h-6" />,
-  },
-  {
-    id: 2,
-    title: "Plan Mode",
-    shortcut: "Select in Chat",
-    description:
-      "Have AI create a detailed implementation plan before any code is written. Review and approve the approach first.",
-    icon: <ClipboardList className="w-6 h-6" />,
-  },
-  {
-    id: 3,
-    title: "Codebase Q&A",
-    shortcut: "@codebase",
-    description:
-      '"How does authentication work?" or "What APIs do we expose?"—get instant answers about any part of the project.',
-    icon: <HelpCircle className="w-6 h-6" />,
-  },
-  {
-    id: 4,
-    title: "Architecture Review",
-    shortcut: "Ask Mode",
-    description:
-      '"What are the dependencies between these modules?" Understand system design without digging through code.',
-    icon: <Building2 className="w-6 h-6" />,
-  },
-  {
-    id: 5,
-    title: "Impact Analysis",
-    shortcut: "Plan Mode",
-    description:
-      '"What would change if we add this feature?" Get a comprehensive view of affected files and components.',
-    icon: <BarChart3 className="w-6 h-6" />,
-  },
-  {
-    id: 6,
-    title: "Documentation Generation",
-    shortcut: "Agent Mode",
-    description:
-      "Generate READMEs, API docs, or architecture diagrams from your existing code automatically.",
-    icon: <BookText className="w-6 h-6" />,
-  },
   {
     id: 7,
-    title: "Code Explanation",
-    shortcut: "Ask Mode",
+    title: "Iterate & Refine",
+    prompt: '"Actually, make it darker" or "A bit more padding"',
     description:
-      "Get plain-English explanations of complex code. Great for onboarding or reviewing unfamiliar areas.",
-    icon: <Lightbulb className="w-6 h-6" />,
+      "Don't try to get everything perfect in one prompt. Make a change, see the result, then ask for adjustments.",
+    icon: <RefreshCw className="w-6 h-6" />,
   },
   {
     id: 8,
-    title: "Technical Specs",
-    shortcut: "Plan Mode",
+    title: "Review Changes",
+    prompt: "Check the diff before accepting",
     description:
-      "Turn feature requests into technical specifications. Share plans with your team before implementation.",
-    icon: <FileText className="w-6 h-6" />,
+      "Always review what the Agent modified. You can accept, reject, or ask for different changes before saving.",
+    icon: <Check className="w-6 h-6" />,
   },
 ];
 
-const developerTutorials = [
+const tutorials = [
   {
     step: 1,
-    title: "Getting Started as a Developer",
+    title: "Open the Agent",
     content:
-      "After downloading Cursor, you can import your VS Code settings and extensions. Cursor is built on VS Code, so everything feels familiar.",
+      "Press ⌘+L (or Ctrl+L on Windows) to open the Agent panel. This is where you'll have conversations with the AI about your code.",
     tips: [
-      "Import settings from VS Code on first launch",
-      "Your existing extensions will work",
-      "Same keyboard shortcuts you know",
+      "The Agent panel opens on the right side",
+      "Your current file is automatically included as context",
+      "You can resize the panel by dragging the edge",
     ],
   },
   {
     step: 2,
-    title: "Your First AI Chat",
+    title: "Describe What You Want",
     content:
-      "Press ⌘+L to open the AI chat. Ask anything about your code or programming in general. The AI has context of your current file.",
+      "Type a natural language description of the change you want. Be specific about what you're trying to achieve.",
     tips: [
-      'Ask "What does this function do?"',
-      "Request code explanations",
-      "Get help with errors",
+      '"Change the background color to dark blue"',
+      '"Add a new section with three feature cards"',
+      '"Make the header sticky when scrolling"',
     ],
   },
   {
     step: 3,
-    title: "Inline Editing Magic",
+    title: "Review the Changes",
     content:
-      "Select some code and press ⌘+K. Describe what changes you want, and watch the AI transform your code instantly.",
+      "The Agent will show you exactly what it plans to change. Review the diff to make sure it matches your intent.",
     tips: [
-      '"Add error handling"',
-      '"Convert to TypeScript"',
-      '"Make this more readable"',
+      "Green lines are additions, red lines are removals",
+      "Click on files to see what changed",
+      "You can still edit the code manually if needed",
     ],
   },
   {
     step: 4,
-    title: "Multi-File with Composer",
+    title: "Accept or Iterate",
     content:
-      "Press ⌘+I to open Composer. This is perfect for larger tasks that span multiple files, like adding a new feature or refactoring.",
+      "If you're happy, accept the changes. If not, ask for adjustments—the Agent remembers the conversation context.",
     tips: [
-      "Create entire components",
-      "Add features across files",
-      "Refactor project structure",
+      '"Actually, make it a lighter shade"',
+      '"Can you also add a hover effect?"',
+      "Use the Reset button above to start fresh anytime",
     ],
   },
 ];
-
-const creatorTutorials = [
-  {
-    step: 1,
-    title: "Getting Started as a Creator",
-    content:
-      "Download Cursor and open this page. No coding experience needed—just describe what you want in plain English, and Cursor will make it happen.",
-    tips: [
-      "No need to know programming languages",
-      "Just describe your vision",
-      "Cursor handles all the technical details",
-    ],
-  },
-  {
-    step: 2,
-    title: "Your First Request",
-    content:
-      "Press ⌘+L to open the AI chat. Tell Cursor what you want to change—colors, layouts, text, images, or new sections.",
-    tips: [
-      '"Make the header blue"',
-      '"Add more spacing between cards"',
-      '"Change the font to something modern"',
-    ],
-  },
-  {
-    step: 3,
-    title: "Visual Editing",
-    content:
-      "Select any element on the page and press ⌘+K. Describe how you want it to look, and watch it transform instantly.",
-    tips: [
-      '"Make this button bigger"',
-      '"Add a shadow effect"',
-      '"Change the background color"',
-    ],
-  },
-  {
-    step: 4,
-    title: "Building Features",
-    content:
-      "Press ⌘+I to open Composer for bigger changes. Describe entire features or sections you want to add, and Cursor will build them.",
-    tips: [
-      '"Add a testimonials section"',
-      '"Create a pricing table"',
-      '"Build a contact form"',
-    ],
-  },
-];
-
-const strategistTutorials = [
-  {
-    step: 1,
-    title: "Getting Started as a Strategist",
-    content:
-      "Download Cursor and open any project. You don't need to write code—use Cursor to explore, understand, and plan before making decisions.",
-    tips: [
-      "Perfect for non-technical team members",
-      "Understand codebases without coding",
-      "Make informed architectural decisions",
-    ],
-  },
-  {
-    step: 2,
-    title: "Ask Questions",
-    content:
-      "Press ⌘+L to open the AI chat. Ask questions about how the codebase works, what features exist, or how different parts connect.",
-    tips: [
-      '"How does authentication work here?"',
-      '"What APIs does this project expose?"',
-      '"How are these components connected?"',
-    ],
-  },
-  {
-    step: 3,
-    title: "Explore the Codebase",
-    content:
-      "Use @codebase in chat to get answers about the entire project. Understand architecture, dependencies, and design patterns without reading code.",
-    tips: [
-      '"What are the main modules?"',
-      '"How do these services interact?"',
-      '"What technologies are used?"',
-    ],
-  },
-  {
-    step: 4,
-    title: "Plan Before Building",
-    content:
-      "Select 'Plan Mode' in chat to have Cursor create detailed implementation plans. Review and approve approaches before any code is written.",
-    tips: [
-      "Get step-by-step implementation plans",
-      "Understand impact before changes",
-      "Share plans with your team",
-    ],
-  },
-];
-
-interface BlogPost {
-  title: string;
-  url: string;
-  date: string;
-  excerpt?: string;
-}
 
 export default function Home() {
-  const [audienceMode, setAudienceMode] = useState<
-    "developer" | "creator" | "strategist"
-  >("developer");
   const [showNotification, setShowNotification] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
-  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
-  const [isToggleSticky, setIsToggleSticky] = useState(false);
-  const toggleRef = useRef<HTMLDivElement>(null);
-
-  const currentTips =
-    audienceMode === "developer"
-      ? developerTips
-      : audienceMode === "creator"
-      ? creatorTips
-      : strategistTips;
-
-  const currentTutorials =
-    audienceMode === "developer"
-      ? developerTutorials
-      : audienceMode === "creator"
-      ? creatorTutorials
-      : strategistTutorials;
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -450,42 +171,11 @@ export default function Home() {
     return () => clearTimeout(timer);
   }, []);
 
-  useEffect(() => {
-    // Fetch blog posts
-    fetch("/api/blog")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.posts) {
-          setBlogPosts(data.posts);
-        }
-      })
-      .catch((error) => {
-        console.error("Error fetching blog posts:", error);
-      });
-  }, []);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      if (toggleRef.current) {
-        const rect = toggleRef.current.getBoundingClientRect();
-        // When toggle scrolls past the nav bar (which is ~64px tall)
-        setIsToggleSticky(rect.top < 64);
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    handleScroll(); // Check initial state
-
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
   const handleReset = async () => {
     if (isResetting) return;
 
     const confirmed = window.confirm(
-      "⚠️ DESTRUCTIVE ACTION ⚠️\n\n" +
-      "This will PERMANENTLY discard ALL local changes and reset to the latest code from main branch.\n\n" +
-      "This cannot be undone. Are you absolutely sure?"
+      "Reset sandbox to default? This will revert all changes you've made to the page."
     );
 
     if (!confirmed) return;
@@ -493,16 +183,13 @@ export default function Home() {
     setIsResetting(true);
     try {
       const response = await fetch("/api/reset", { method: "POST" });
-      const data = await response.json();
-      
       if (response.ok) {
-        alert("✅ Sandbox reset successfully! All changes discarded and pulled latest from main.");
         window.location.reload();
       } else {
-        alert(`❌ Failed to reset sandbox: ${data.message || "Unknown error"}`);
+        alert("Failed to reset sandbox. Please try again.");
       }
     } catch (error) {
-      alert("❌ Failed to reset sandbox. Please check your connection and try again.");
+      alert("Failed to reset sandbox. Please try again.");
     } finally {
       setIsResetting(false);
     }
@@ -517,7 +204,7 @@ export default function Home() {
             {/* Cursor Logo */}
             <img src="/cursor-logo.png" alt="Cursor" className="h-6" />
             <span className="text-xs bg-cursor-olive/10 text-cursor-olive px-2 py-1 rounded-full font-medium">
-              Sandbox
+              Playground
             </span>
           </div>
           <button
@@ -533,64 +220,6 @@ export default function Home() {
             Reset sandbox
           </button>
         </div>
-        
-        {/* Sticky Toggle - appears when scrolled past */}
-        <AnimatePresence>
-          {isToggleSticky && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
-              className="border-t border-cursor-beige/50 bg-cursor-cream/95 backdrop-blur-sm"
-            >
-              <div className="max-w-6xl mx-auto px-6 py-1.5 flex items-center justify-center gap-3">
-                <p className="text-cursor-muted text-xs whitespace-nowrap">Tips for</p>
-                <div className="inline-flex items-center bg-white rounded-full p-0.5 shadow-sm border border-cursor-beige">
-                  <button
-                    onClick={() => setAudienceMode("developer")}
-                    className={`relative px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-300 ${
-                      audienceMode === "developer"
-                        ? "bg-cursor-olive text-white shadow-md"
-                        : "text-cursor-muted hover:text-cursor-charcoal"
-                    }`}
-                  >
-                    <span className="flex items-center gap-1.5">
-                      <Code2 className="w-3.5 h-3.5" />
-                      Developers
-                    </span>
-                  </button>
-                  <button
-                    onClick={() => setAudienceMode("creator")}
-                    className={`relative px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-300 ${
-                      audienceMode === "creator"
-                        ? "bg-cursor-olive text-white shadow-md"
-                        : "text-cursor-muted hover:text-cursor-charcoal"
-                    }`}
-                  >
-                    <span className="flex items-center gap-1.5">
-                      <Palette className="w-3.5 h-3.5" />
-                      Creators
-                    </span>
-                  </button>
-                  <button
-                    onClick={() => setAudienceMode("strategist")}
-                    className={`relative px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-300 ${
-                      audienceMode === "strategist"
-                        ? "bg-cursor-olive text-white shadow-md"
-                        : "text-cursor-muted hover:text-cursor-charcoal"
-                    }`}
-                  >
-                    <span className="flex items-center gap-1.5">
-                      <Compass className="w-3.5 h-3.5" />
-                      Strategists
-                    </span>
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </nav>
 
       {/* Tips Section - Main Content */}
@@ -613,112 +242,67 @@ export default function Home() {
               Interactive Sandbox
             </div>
             <h1 className="font-serif text-4xl md:text-6xl text-cursor-charcoal mb-4">
-              Welcome to <span className="italic">Cursor Sandbox</span>
+              Learn <span className="italic">Cursor Agent</span> by Using It
             </h1>
-            <div className="min-h-[60px] flex items-center justify-center">
-              <AnimatePresence mode="wait">
-                <motion.p
-                  key={audienceMode}
-                  variants={fadeInOut}
-                  initial="hidden"
-                  animate="visible"
-                  exit="exit"
-                  className="text-cursor-muted max-w-2xl mx-auto text-lg"
-                >
-                  {audienceMode === "developer"
-                    ? "A safe space to experiment with Cursor's AI-powered coding features. Try shortcuts, autocomplete, and agents without fear of breaking anything."
-                    : audienceMode === "creator"
-                    ? "Use natural language to design, style, and build—no coding knowledge required."
-                    : "Explore, plan, and understand your codebase before making decisions."}
-                </motion.p>
-              </AnimatePresence>
-            </div>
-            <p className="text-cursor-olive font-medium max-w-2xl mx-auto text-lg mt-4">
-              This entire page is yours to customize—just ask the Agent!
+            <p className="text-cursor-muted max-w-2xl mx-auto text-lg">
+              This page is your playground. Use the tips below to practice
+              talking to the Agent—try editing colors, layouts, content, or
+              anything else you can imagine.
             </p>
+            <div className="flex items-center justify-center gap-3 mt-6 text-cursor-olive font-medium">
+              <motion.span
+                animate={{ x: [0, -8, 0] }}
+                transition={{
+                  duration: 1.5,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+                className="text-2xl"
+              >
+                ←
+              </motion.span>
+              <span>Type something in the Agent chat to the left</span>
+            </div>
           </motion.div>
 
-          {/* Audience Toggle */}
-          <div 
-            ref={toggleRef}
-            className={`flex items-center justify-center gap-4 mb-12 transition-opacity duration-300 ${
-              isToggleSticky ? "opacity-0 pointer-events-none" : "opacity-100"
-            }`}
-          >
-            <p className="text-cursor-muted text-sm whitespace-nowrap">Tips for</p>
-            <div className="inline-flex items-center bg-white rounded-full p-1 shadow-sm border border-cursor-beige">
-              <button
-                onClick={() => setAudienceMode("developer")}
-                className={`relative px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 ${
-                  audienceMode === "developer"
-                    ? "bg-cursor-olive text-white shadow-md"
-                    : "text-cursor-muted hover:text-cursor-charcoal"
-                }`}
-              >
-                <span className="flex items-center gap-2">
-                  <Code2 className="w-4 h-4" />
-                  Developers
-                </span>
-              </button>
-              <button
-                onClick={() => setAudienceMode("creator")}
-                className={`relative px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 ${
-                  audienceMode === "creator"
-                    ? "bg-cursor-olive text-white shadow-md"
-                    : "text-cursor-muted hover:text-cursor-charcoal"
-                }`}
-              >
-                <span className="flex items-center gap-2">
-                  <Palette className="w-4 h-4" />
-                  Creators
-                </span>
-              </button>
-              <button
-                onClick={() => setAudienceMode("strategist")}
-                className={`relative px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 ${
-                  audienceMode === "strategist"
-                    ? "bg-cursor-olive text-white shadow-md"
-                    : "text-cursor-muted hover:text-cursor-charcoal"
-                }`}
-              >
-                <span className="flex items-center gap-2">
-                  <Compass className="w-4 h-4" />
-                  Strategists
-                </span>
-              </button>
-            </div>
-          </div>
-
           {/* Tips Grid */}
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={audienceMode}
-              className="grid md:grid-cols-2 lg:grid-cols-4 gap-4"
-              initial="hidden"
-              animate="visible"
-              exit="hidden"
-              variants={staggerContainer}
-            >
-              {currentTips.map((tip) => (
-                <motion.div
-                  key={tip.id}
-                  variants={fadeInUp}
-                  className="glass rounded-2xl p-6 hover:shadow-lg transition-all hover:-translate-y-1 group"
-                >
-                  <div className="text-cursor-olive mb-4">{tip.icon}</div>
-                  <h3 className="font-semibold text-lg text-cursor-charcoal mb-2 group-hover:text-cursor-olive transition-colors">
-                    {tip.title}
-                  </h3>
-                  <div className="mb-3">
-                    <span className="kbd text-xs">{tip.shortcut}</span>
-                  </div>
-                  <p className="text-sm text-cursor-muted leading-relaxed">
-                    {tip.description}
-                  </p>
-                </motion.div>
-              ))}
-            </motion.div>
-          </AnimatePresence>
+          <motion.div
+            className="grid md:grid-cols-2 lg:grid-cols-4 gap-4"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={staggerContainer}
+          >
+            {agentTips.map((tip) => (
+              <motion.div
+                key={tip.id}
+                variants={fadeInUp}
+                className={`glass rounded-2xl p-6 hover:shadow-lg transition-all hover:-translate-y-1 group ${
+                  tip.tryIt ? "ring-2 ring-cursor-olive/20" : ""
+                }`}
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div className="text-cursor-olive">{tip.icon}</div>
+                  {tip.tryIt && (
+                    <span className="text-xs bg-cursor-olive/10 text-cursor-olive px-2 py-1 rounded-full font-medium">
+                      Try it!
+                    </span>
+                  )}
+                </div>
+                <h3 className="font-semibold text-lg text-cursor-charcoal mb-2 group-hover:text-cursor-olive transition-colors">
+                  {tip.title}
+                </h3>
+                <div className="mb-3">
+                  <code className="text-xs bg-cursor-charcoal/5 text-cursor-charcoal/80 px-2 py-1 rounded font-mono">
+                    {tip.prompt}
+                  </code>
+                </div>
+                <p className="text-sm text-cursor-muted leading-relaxed">
+                  {tip.description}
+                </p>
+              </motion.div>
+            ))}
+          </motion.div>
         </div>
       </section>
 
@@ -734,74 +318,33 @@ export default function Home() {
             <p className="text-cursor-muted text-sm uppercase tracking-widest mb-4">
               Step by Step
             </p>
-            <div className="min-h-[80px] flex items-center justify-center mb-4">
-              <AnimatePresence mode="wait">
-                <motion.h2
-                  key={audienceMode}
-                  variants={fadeInOut}
-                  initial="hidden"
-                  animate="visible"
-                  exit="exit"
-                  className="font-serif text-4xl md:text-5xl text-cursor-charcoal"
-                >
-                  Getting Started
-                </motion.h2>
-              </AnimatePresence>
-            </div>
+            <h2 className="font-serif text-4xl md:text-5xl text-cursor-charcoal mb-4">
+              Getting <span className="italic">Started</span> Guide
+            </h2>
             <p className="text-cursor-muted max-w-xl mx-auto">
               Follow these steps to go from beginner to productive in just a few
               minutes.
             </p>
           </motion.div>
 
-          <div className="relative min-h-[400px]">
-            <AnimatePresence mode="wait">
+          <div className="space-y-8">
+            {tutorials.map((tutorial, index) => (
               <motion.div
-                key={audienceMode}
-                variants={fadeInOut}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                className="space-y-8"
+                key={tutorial.step}
+                initial={{ opacity: 0, x: index % 2 === 0 ? -20 : 20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+                className="flex gap-6"
               >
-              {currentTutorials.map((tutorial, index) => (
-                <motion.div
-                  key={`${audienceMode}-${tutorial.step}`}
-                  initial={{ opacity: 0, x: index % 2 === 0 ? -20 : 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="flex gap-6"
-                >
                 <div className="flex-shrink-0">
                   <div className="w-12 h-12 rounded-full bg-cursor-olive text-white flex items-center justify-center font-serif text-xl">
                     {tutorial.step}
                   </div>
                 </div>
                 <div className="flex-1 glass rounded-2xl p-6">
-                  <h3 className="font-semibold text-xl text-cursor-charcoal mb-3 flex items-center gap-2">
-                    {tutorial.step === 1 && tutorial.title.includes("Getting Started") ? (
-                      <>
-                        Getting Started as a{" "}
-                        {audienceMode === "developer" ? (
-                          <>
-                            <Code2 className="w-5 h-5" />
-                            Developer
-                          </>
-                        ) : audienceMode === "creator" ? (
-                          <>
-                            <Palette className="w-5 h-5" />
-                            Creator
-                          </>
-                        ) : (
-                          <>
-                            <Compass className="w-5 h-5" />
-                            Strategist
-                          </>
-                        )}
-                      </>
-                    ) : (
-                      tutorial.title
-                    )}
+                  <h3 className="font-semibold text-xl text-cursor-charcoal mb-3">
+                    {tutorial.title}
                   </h3>
                   <p className="text-cursor-muted mb-4">{tutorial.content}</p>
                   <ul className="space-y-2">
@@ -818,8 +361,6 @@ export default function Home() {
                 </div>
               </motion.div>
             ))}
-              </motion.div>
-            </AnimatePresence>
           </div>
         </div>
       </section>
@@ -829,7 +370,7 @@ export default function Home() {
         id="shortcuts"
         className="py-24 px-6 bg-cursor-charcoal text-white"
       >
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-3xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -837,14 +378,14 @@ export default function Home() {
             className="text-center mb-16"
           >
             <p className="text-cursor-warm/60 text-sm uppercase tracking-widest mb-4">
-              Quick Reference
+              Essential Shortcuts
             </p>
             <h2 className="font-serif text-4xl md:text-5xl text-white mb-4">
-              Keyboard <span className="italic">Shortcuts</span>
+              Agent <span className="italic">Shortcuts</span>
             </h2>
             <p className="text-cursor-warm/60 max-w-xl mx-auto">
-              Print this out or keep it handy. These shortcuts will become
-              second nature.
+              The only shortcuts you need to know to start using the Agent
+              effectively.
             </p>
           </motion.div>
 
@@ -856,23 +397,31 @@ export default function Home() {
           >
             <div className="grid md:grid-cols-2">
               {[
-                { keys: "⌘ + L", action: "Open AI Chat" },
-                { keys: "⌘ + K", action: "Inline Edit" },
-                { keys: "⌘ + I", action: "Open Composer" },
-                { keys: "Tab", action: "Accept Suggestion" },
-                { keys: "⌘ + Shift + L", action: "Add Selection to Chat" },
-                { keys: "⌘ + `", action: "Toggle Terminal" },
-                { keys: "⌘ + B", action: "Toggle Sidebar" },
-                { keys: "⌘ + P", action: "Quick Open File" },
+                { keys: "⌘ + L", action: "Open Agent Panel", primary: true },
+                { keys: "⌘ + I", action: "Open Composer", primary: true },
+                { keys: "⌘ + Z", action: "Undo Changes", primary: false },
+                { keys: "⌘ + Enter", action: "Send Message", primary: false },
               ].map((shortcut, index) => (
                 <div
                   key={shortcut.keys}
                   className={`flex items-center justify-between p-5 ${
                     index % 2 === 0 ? "border-r border-white/10" : ""
-                  } ${index < 6 ? "border-b border-white/10" : ""}`}
+                  } ${index < 2 ? "border-b border-white/10" : ""}`}
                 >
-                  <span className="text-white/80">{shortcut.action}</span>
-                  <kbd className="bg-white/10 text-white px-3 py-1.5 rounded-lg text-sm font-mono">
+                  <span
+                    className={
+                      shortcut.primary ? "text-white" : "text-white/60"
+                    }
+                  >
+                    {shortcut.action}
+                  </span>
+                  <kbd
+                    className={`px-3 py-1.5 rounded-lg text-sm font-mono ${
+                      shortcut.primary
+                        ? "bg-cursor-olive text-white"
+                        : "bg-white/10 text-white"
+                    }`}
+                  >
                     {shortcut.keys}
                   </kbd>
                 </div>
@@ -891,7 +440,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Social Proof Section */}
+      {/* Pro Tips Section */}
       <section className="py-24 px-6">
         <div className="max-w-6xl mx-auto">
           <motion.div
@@ -901,106 +450,50 @@ export default function Home() {
             className="text-center mb-16"
           >
             <p className="text-cursor-muted text-sm uppercase tracking-widest mb-4">
-              Loved by Developers
+              Level Up
             </p>
             <h2 className="font-serif text-4xl md:text-5xl text-cursor-charcoal mb-4">
-              What People Are <span className="italic">Saying</span>
+              <span className="italic">Agent</span> Pro Tips
             </h2>
           </motion.div>
 
-          {/* Testimonials */}
-          <div className="grid md:grid-cols-2 gap-6 mb-16">
+          <div className="grid md:grid-cols-3 gap-6">
             {[
               {
-                quote: "Cursor has completely transformed how I code. The AI suggestions are spot-on and save me hours every day.",
-                author: "Sarah Chen",
-                role: "Senior Engineer at Stripe",
+                title: "Undo with ⌘+Z",
+                description:
+                  "Made a mistake? Just undo like normal. The Agent's changes are just regular edits—you have full control.",
+                icon: <Undo2 className="w-8 h-8" />,
               },
               {
-                quote: "I can build features in minutes that used to take hours. Cursor understands context better than any tool I've used.",
-                author: "Marcus Johnson",
-                role: "Full-stack Developer",
+                title: "Use Plan Mode",
+                description:
+                  "For complex changes, ask the Agent to plan first. It will outline the approach before making any edits.",
+                icon: <ClipboardList className="w-8 h-8" />,
               },
               {
-                quote: "As a designer, Cursor lets me bring my ideas to life without needing to learn complex programming. It's magical.",
-                author: "Emma Rodriguez",
-                role: "Product Designer",
+                title: "Chain Requests",
+                description:
+                  'Build on previous changes. Say "now make it responsive" or "add a hover effect to that" in the same conversation.',
+                icon: <RefreshCw className="w-8 h-8" />,
               },
-              {
-                quote: "Cursor helps me understand codebases I've never seen before. It's like having a senior engineer explain everything.",
-                author: "David Kim",
-                role: "Engineering Manager",
-              },
-            ].map((testimonial, index) => (
+            ].map((tip, index) => (
               <motion.div
-                key={index}
+                key={tip.title}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
-                className="glass rounded-2xl p-6"
+                className="bg-gradient-to-br from-cursor-olive/10 to-cursor-olive/5 rounded-2xl p-8 border border-cursor-olive/20"
               >
-                <p className="text-cursor-charcoal mb-4 italic">
-                  "{testimonial.quote}"
-                </p>
-                <div>
-                  <p className="font-semibold text-cursor-charcoal">
-                    {testimonial.author}
-                  </p>
-                  <p className="text-sm text-cursor-muted">{testimonial.role}</p>
-                </div>
+                <div className="text-cursor-olive mb-4">{tip.icon}</div>
+                <h3 className="font-semibold text-xl text-cursor-charcoal mb-3">
+                  {tip.title}
+                </h3>
+                <p className="text-cursor-muted">{tip.description}</p>
               </motion.div>
             ))}
           </div>
-
-          {/* Blog Posts */}
-          {blogPosts.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-            >
-              <div className="text-center mb-8">
-                <p className="text-cursor-muted text-sm uppercase tracking-widest mb-4">
-                  Latest Updates
-                </p>
-                <h3 className="font-serif text-3xl md:text-4xl text-cursor-charcoal mb-4">
-                  From the <span className="italic">Cursor</span> Blog
-                </h3>
-              </div>
-              <div className="grid md:grid-cols-3 gap-6">
-                {blogPosts.slice(0, 3).map((post, index) => (
-                  <motion.a
-                    key={post.title}
-                    href={post.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: index * 0.1 }}
-                    className="glass rounded-2xl p-6 hover:shadow-lg transition-all hover:-translate-y-1 block"
-                  >
-                    <p className="text-xs text-cursor-muted mb-2">
-                      {new Date(post.date).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })}
-                    </p>
-                    <h4 className="font-semibold text-lg text-cursor-charcoal mb-2 hover:text-cursor-olive transition-colors">
-                      {post.title}
-                    </h4>
-                    {post.excerpt && (
-                      <p className="text-sm text-cursor-muted line-clamp-2">
-                        {post.excerpt}
-                      </p>
-                    )}
-                  </motion.a>
-                ))}
-              </div>
-            </motion.div>
-          )}
         </div>
       </section>
 
@@ -1008,7 +501,7 @@ export default function Home() {
       <footer className="py-12 px-6 bg-cursor-beige/50 border-t border-cursor-beige">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <img src="/cursor-logo.png" alt="Cursor" className="h-6" />
+            <img src="/cursor-logo.png" alt="Cursor" className="h-5" />
           </div>
           <p className="text-sm text-cursor-muted">
             A sandbox for learning. Edit anything by prompting the Agent.
