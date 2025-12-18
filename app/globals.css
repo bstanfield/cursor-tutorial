@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -46,7 +46,7 @@ body {
 .code-block {
   background: #1e1e1e;
   color: #d4d4d4;
-  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+  font-family: "SF Mono", "Monaco", "Inconsolata", "Fira Code", monospace;
   font-size: 14px;
   line-height: 1.6;
   border-radius: 12px;
@@ -76,7 +76,7 @@ body {
   align-items: center;
   justify-content: center;
   padding: 4px 8px;
-  font-family: 'SF Mono', monospace;
+  font-family: "SF Mono", monospace;
   font-size: 12px;
   font-weight: 500;
   background: linear-gradient(180deg, #ffffff 0%, #f0f0f0 100%);
@@ -88,7 +88,8 @@ body {
 
 /* Animation for hero */
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0px);
   }
   50% {
@@ -116,9 +117,18 @@ body {
   animation: fadeInUp 0.6s ease-out forwards;
 }
 
-.delay-100 { animation-delay: 100ms; }
-.delay-200 { animation-delay: 200ms; }
-.delay-300 { animation-delay: 300ms; }
-.delay-400 { animation-delay: 400ms; }
-.delay-500 { animation-delay: 500ms; }
-
+.delay-100 {
+  animation-delay: 100ms;
+}
+.delay-200 {
+  animation-delay: 200ms;
+}
+.delay-300 {
+  animation-delay: 300ms;
+}
+.delay-400 {
+  animation-delay: 400ms;
+}
+.delay-500 {
+  animation-delay: 500ms;
+}

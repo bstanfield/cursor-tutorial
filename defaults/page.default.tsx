@@ -20,16 +20,24 @@ import {
 } from "lucide-react";
 
 const fadeInUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 },
+  hidden: { opacity: 0, y: 12 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.4,
+      ease: [0.25, 0.1, 0.25, 1],
+    },
+  },
 };
 
 const staggerContainer = {
-  hidden: { opacity: 0 },
+  hidden: { opacity: 1 },
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1,
+      staggerChildren: 0.06,
+      delayChildren: 0.1,
     },
   },
 };
@@ -234,13 +242,6 @@ export default function Home() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <div className="inline-flex items-center gap-2 bg-cursor-olive/10 text-cursor-olive px-4 py-2 rounded-full text-sm font-medium mb-6">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cursor-olive opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-cursor-olive"></span>
-              </span>
-              Interactive Sandbox
-            </div>
             <h1 className="font-serif text-4xl md:text-6xl text-cursor-charcoal mb-4">
               Learn <span className="italic">Cursor Agent</span> by Using It
             </h1>
@@ -249,19 +250,12 @@ export default function Home() {
               talking to the Agent—try editing colors, layouts, content, or
               anything else you can imagine.
             </p>
-            <div className="flex items-center justify-center gap-3 mt-6 text-cursor-olive font-medium">
-              <motion.span
-                animate={{ x: [0, -8, 0] }}
-                transition={{
-                  duration: 1.5,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-                className="text-2xl"
-              >
-                ←
-              </motion.span>
-              <span>Type something in the Agent chat to the left</span>
+            <div className="flex items-center justify-center gap-2 mt-6 text-cursor-muted">
+              <span>Press</span>
+              <kbd className="px-2.5 py-1 bg-gray-400/40 text-cursor-charcoal text-sm font-mono rounded-md">
+                ⌘L
+              </kbd>
+              <span>or type in the Agent chat to the left</span>
             </div>
           </motion.div>
 
